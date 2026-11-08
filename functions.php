@@ -1,0 +1,1 @@
+<?php // Funciones compartidas de la aplicación.
