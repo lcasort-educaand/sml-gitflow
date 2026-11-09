@@ -1,9 +1,15 @@
 <?php
+require_once __DIR__ . '/app/bd.php';
 require_once __DIR__ . '/app/session.php';
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/app/router.php';
-?>
 
+?>
+<?php if ($errorLogin !== null): ?>
+  <div class="alert alert-danger" role="alert">
+    <?= htmlspecialchars($errorLogin, ENT_QUOTES, 'UTF-8') ?>
+  </div>
+<?php endif; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -19,14 +25,14 @@ require_once __DIR__ . '/app/router.php';
       <h1 class="h3 mb-4">Temario de clase</h1>
       <form method="post">
         <div class="mb-3">
-          <label class="form-label" for="usuario">Usuario</label>
-          <input class="form-control" id="usuario" name="usuario" autocomplete="username" required>
+          <label class="form-label" for="email">Usuario</label>
+          <input class="form-control" id="email" name="email" autocomplete="email" required>
         </div>
         <div class="mb-3">
           <label class="form-label" for="contrasena">Contraseña</label>
           <input class="form-control" id="contrasena" name="contrasena" type="password" autocomplete="current-password" required>
         </div>
-        <button class="btn btn-primary" type="submit">Entrar</button>
+        <button class="btn btn-primary" type="submit" name="login">Entrar</button>
       </form>
     </div>
   </main>
