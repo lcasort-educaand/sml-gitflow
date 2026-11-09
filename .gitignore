@@ -1,0 +1,2 @@
+#Incluimos el .env para evitar que las variables queden expuestas
+.env
