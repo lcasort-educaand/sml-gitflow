@@ -1,46 +1,48 @@
 <?php
 
-function resolverPantalla($rol, $ruta): ?string
-{
-    $rutas = [
-        'guest' => [
-            'login' => null,
-        ],
-        'admin' => [
-            'dashboard' => __DIR__ . '/dashboard/admin/index.php',
-            'temario' => __DIR__ . '/temario/admin/index.php',
-            'temario/create' => __DIR__ . '/temario/admin/create.php',
-            'temario/edit' => __DIR__ . '/temario/admin/edit.php',
-        ],
-        'user' => [
-            'dashboard' => __DIR__ . '/dashboard/user/index.php',
-            'temario' => __DIR__ . '/temario/user/index.php',
-        ],
-    ];
+require_once __DIR__ . '/session.php';
 
-    $predeterminadas = [
-        'guest' => 'login',
-        'admin' => 'dashboard',
-        'user' => 'dashboard',
-    ];
+$rolesPorArchivo = [
+    '/app/dashboard/admin/index.php' => 'admin',
+    '/app/dashboard/user/index.php' => 'user',
+    '/app/temario/admin/index.php' => 'admin',
+    '/app/temario/admin/create.php' => 'admin',
+    '/app/temario/admin/edit.php' => 'admin',
+    '/app/temario/user/index.php' => 'user',
+];
 
-    $permitidas = is_string($rol) ? ($rutas[$rol] ?? []) : [];
-    if ($ruta === '' && $permitidas !== []) {
-        $ruta = $predeterminadas[$rol];
+$paneles = [
+    'admin' => '/app/dashboard/admin/index.php',
+    'user' => '/app/dashboard/user/index.php',
+];
+
+$raiz = dirname(__DIR__);
+$archivo = realpath($_SERVER['SCRIPT_FILENAME'] ?? '');
+$rol = $_SESSION['rol'] ?? null;
+
+$sesionValida = isset($_SESSION['usuario_id'])
+    && is_string($rol)
+    && isset($paneles[$rol]);
+
+if ($archivo === realpath($raiz . '/index.php')) {
+    if ($sesionValida) {
+        header('Location: ' . $paneles[$rol], true, 303);
+        exit;
     }
 
-    if (is_string($ruta) && array_key_exists($ruta, $permitidas)) {
-        return $permitidas[$ruta];
-    }
-
-    $desconocida = $permitidas !== [] &&
-        (!is_string($ruta) || array_column($rutas, $ruta) === []);
-    http_response_code($desconocida ? 404 : 403);
-    exit($desconocida ? 'Ruta desconocida.' : 'Acceso denegado.');
+    return; // index.php muestra el formulario de login.
 }
 
-$pantalla = resolverPantalla($_SESSION['rol'] ?? 'guest', $_GET['ruta'] ?? '');
-if ($pantalla !== null) {
-    require $pantalla;
+if (!$sesionValida) {
+    header('Location: /index.php', true, 303);
     exit;
 }
+
+foreach ($rolesPorArchivo as $ruta => $rolPermitido) {
+    if ($archivo === realpath($raiz . $ruta) && $rol === $rolPermitido) {
+        return; // La página solicitada puede mostrar su HTML.
+    }
+}
+
+http_response_code(403);
+exit('Acceso denegado.');
